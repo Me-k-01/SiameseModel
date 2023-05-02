@@ -8,7 +8,7 @@ import os as os
 
 import tensorflow as tf 
 from tensorflow.keras.layers import Input, GlobalAveragePooling2D, Conv2D, MaxPooling2D, Dense, Dropout
-  
+ 
   
 from model import model_init
 
@@ -49,10 +49,11 @@ def load_model(model):
 
 def predict_on_image(model, image, x, y): 
     test_image_pairs, _ = generate_test_image_pairs(x, y, image) # produce an array of test image pairs and test label pairs
+ 
 
-    fig, axs = plt.subplots(len(test_image_pairs)) 
-    
-    fig.subplots_adjust(hspace=1, wspace=1)
+    images = []
+    preds = []
+
     # for each pair in the test image pair, predict the similarity between the images
     for index, pair in enumerate(test_image_pairs):
         pair_image1 = np.expand_dims(pair[0], axis=-1)
@@ -61,14 +62,25 @@ def predict_on_image(model, image, x, y):
         pair_image2 = np.expand_dims(pair_image2, axis=0)
         #pair_img = np.array([pair_image1, pair_image2])
         prediction = model.predict([pair_image1, pair_image2])[0][0]
+        preds.append(prediction)
+        images.append(stiches(np.array([pair[0], pair[1]]), 2))
 
-        axs[index].imshow(stiches(np.array([pair[0], pair[1]]), 2), cmap='gray') 
-        axs[index].set_title(str(prediction))
+        #axs[index].imshow(stiches(np.array([pair[0], pair[1]]), 2), cmap='gray') 
+        #axs[index].set_title(str(prediction))
         #axs[index].update(wspace=0.5, hspace=0.5)
         #axs[index].tight_layout()
+    #images = [img for _, img in sorted(zip(preds, images))]
+    #preds = sorted(preds) 
+
+    fig, axs = plt.subplots(len(test_image_pairs)) 
+    fig.subplots_adjust(hspace=1, wspace=1)
+    for i in range(len(images)):
+        axs[index].imshow(images[i], cmap='gray') 
+        axs[index].set_title(str(preds[i]))
     #plt.savefig('./pred_by_patch_' + str(FLAGS.patch_size_in) +  '_to_' + str(FLAGS.patch_size_out) + '.png')
     #plt.setp([a.get_xticklabels() for a in axs ], visible=False)
     #plt.setp([a.get_yticklabels() for a in axs ], visible=False)
+
     fig.tight_layout() 
     plt.show()
 

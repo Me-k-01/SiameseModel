@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # Creation du model
     
     model = model_init()
-    model = load_model(model)
+    #model = load_model(model)
     
     olivetti = fetch_olivetti_faces()
     # On se reservera deux images pour le test
@@ -58,11 +58,11 @@ if __name__ == "__main__":
     y = olivetti.target[:100] # de forme (400-2,), dtype=int32, labels
 
     images_pair, labels_pair = generate_train_image_pairs(x, y)
-    loss = model.fit([images_pair[:, 0], images_pair[:, 1]], labels_pair[:], validation_split=0.1, batch_size=64, epochs=100)
+    loss = model.fit([images_pair[:, 0], images_pair[:, 1]], labels_pair[:], validation_split=0.1, batch_size=64, epochs=1000)
     
     save_model(model, loss)
     
     # Prediction avec le model Siamois
-    image = x[-1] # a random image as test image
+    image = x[1] # a random image as test image
     predict_on_image(model, image, x, y)
        
