@@ -35,15 +35,54 @@ def generate_test_image_pairs(images_dataset, labels_dataset, image):
         pair_labels.append(label)
     return np.array(pair_images), np.array(pair_labels)
 
+def load_model(model):
+    global model_path
+    if not os.path.isfile(model_path):
+        return RuntimeError("Error loading model", model_path)
 
-if __name__ == "__main__":
-    image = images_dataset[-1] # a random image as test image
-    test_image_pairs, test_label_pairs = generate_test_image_pairs(images_dataset, labels_dataset, image) # produce an array of test image pairs and test label pairs
+    print("Loading model from", model_path)
+    model.load_weights(model_path)
+    
+    model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+    model.summary()
+    return model
 
+def predict_on_image(model, image, x, y): 
+    test_image_pairs, _ = generate_test_image_pairs(x, y, image) # produce an array of test image pairs and test label pairs
+
+    fig, axs = plt.subplots(len(test_image_pairs)) 
+    
+    fig.subplots_adjust(hspace=1, wspace=1)
     # for each pair in the test image pair, predict the similarity between the images
     for index, pair in enumerate(test_image_pairs):
         pair_image1 = np.expand_dims(pair[0], axis=-1)
         pair_image1 = np.expand_dims(pair_image1, axis=0)
         pair_image2 = np.expand_dims(pair[1], axis=-1)
         pair_image2 = np.expand_dims(pair_image2, axis=0)
+        #pair_img = np.array([pair_image1, pair_image2])
         prediction = model.predict([pair_image1, pair_image2])[0][0]
+
+        axs[index].imshow(stiches(np.array([pair[0], pair[1]]), 2), cmap='gray') 
+        axs[index].set_title(str(prediction))
+        #axs[index].update(wspace=0.5, hspace=0.5)
+        #axs[index].tight_layout()
+    #plt.savefig('./pred_by_patch_' + str(FLAGS.patch_size_in) +  '_to_' + str(FLAGS.patch_size_out) + '.png')
+    #plt.setp([a.get_xticklabels() for a in axs ], visible=False)
+    #plt.setp([a.get_yticklabels() for a in axs ], visible=False)
+    fig.tight_layout() 
+    plt.show()
+
+
+if __name__ == "__main__":
+    
+    model = model_init()
+    model = load_model(model)
+
+    olivetti = fetch_olivetti_faces()
+    # On se reservera deux images pour le test
+    x = olivetti.images[:100] # de forme (400-2, 64, 64), dtype=float32, valeurs entre 0.0 et
+    y = olivetti.target[:100] # de forme (400-2,), dtype=int32, labels
+
+    # Prediction avec le model Siamois
+    image = x[-1] # a random image as test image
+    predict_on_image(model, image, x, y)

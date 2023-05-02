@@ -4,13 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt 
 plt.style.use('dark_background') 
   
-import os as os
-
+import os
 import tensorflow as tf 
 from tensorflow.keras.layers import Input, GlobalAveragePooling2D, Conv2D, MaxPooling2D, Dense, Dropout
 
 from model import model_init
-from test import stiches, generate_test_image_pairs
+from test import predict_on_image, load_model
 # Variable global
 model_path = "./src/trained_model/siamese.h5"
  
@@ -41,9 +40,9 @@ def generate_train_image_pairs(images_dataset, labels_dataset):
 def save_model(model, loss):
     global model_path
     """Write logs and save the model"""
-    train_summary_writer = tf.summary.create_file_writer("./tmp/log")
-    with train_summary_writer.as_default():
-        tf.summary.scalar("loss", loss)
+    #train_summary_writer = tf.summary.create_file_writer("./tmp/log")
+    #with train_summary_writer.as_default():
+    #    tf.summary.scalar("loss", loss)
     model.save(model_path) 
      
     
@@ -51,6 +50,7 @@ if __name__ == "__main__":
     # Creation du model
     
     model = model_init()
+    model = load_model(model)
     
     olivetti = fetch_olivetti_faces()
     # On se reservera deux images pour le test
@@ -64,20 +64,5 @@ if __name__ == "__main__":
     
     # Prediction avec le model Siamois
     image = x[-1] # a random image as test image
-    test_image_pairs, test_label_pairs = generate_test_image_pairs(x, y, image) # produce an array of test image pairs and test label pairs
-
-    # for each pair in the test image pair, predict the similarity between the images
-    for index, pair in enumerate(test_image_pairs):
-        pair_image1 = np.expand_dims(pair[0], axis=-1)
-        pair_image1 = np.expand_dims(pair_image1, axis=0)
-        pair_image2 = np.expand_dims(pair[1], axis=-1)
-        pair_image2 = np.expand_dims(pair_image2, axis=0)
-        prediction = model.predict([pair_image1, pair_image2])[0][0]
-    
-    
-    fig, axs = plt.subplots() 
-    
-    
-    #axs.imshow(stiches(olivetti.images[0:10], 10), cmap='gray') 
-    #plt.savefig('./pred_by_patch_' + str(FLAGS.patch_size_in) +  '_to_' + str(FLAGS.patch_size_out) + '.png')
-    plt.show()
+    predict_on_image(model, image, x, y)
+       

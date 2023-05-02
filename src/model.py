@@ -36,6 +36,7 @@ def model_init():
     
     # Creation du model
     feature_extractor = create_model()
+    
     imgA = Input(shape=(64, 64, 1))
     imgB = Input(shape=(64, 64, 1))
     featA = feature_extractor(imgA)
@@ -46,4 +47,6 @@ def model_init():
     model = tf.keras.Model(inputs=[imgA, imgB], outputs=outputs)
 
     model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+    model.summary()
+
     return model
